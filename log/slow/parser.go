@@ -34,15 +34,18 @@ import (
 
 // Regular expressions to match important lines in slow log.
 var (
-	timeRe    = regexp.MustCompile(`Time: (\S+\s{1,2}\S+)`)
-	timeNewRe = regexp.MustCompile(`Time:\s+(\d{4}-\d{2}-\d{2}\S+)`)
-	userRe    = regexp.MustCompile(`User@Host: ([^\[]+|\[[^[]+\]).*?@ (\S*) \[(.*)\]`)
-	schema    = regexp.MustCompile(`Schema: +(.*?) +Last_errno:`)
-	headerRe  = regexp.MustCompile(`^#\s+[A-Z]`)
-	metricsRe = regexp.MustCompile(`(\w+): (\S+|\z)`)
-	adminRe   = regexp.MustCompile(`command: (.+)`)
-	setRe     = regexp.MustCompile(`^SET (?:last_insert_id|insert_id|timestamp)`)
-	useRe     = regexp.MustCompile(`^(?i)use `)
+	timeRe       = regexp.MustCompile(`Time: (\S+\s{1,2}\S+)`)
+	timeNewRe    = regexp.MustCompile(`Time:\s+(\d{4}-\d{2}-\d{2}\S+)`)
+	userRe       = regexp.MustCompile(`User@Host: ([^\[]+|\[[^[]+\]).*?@ (\S*) \[(.*)\]`)
+	schema       = regexp.MustCompile(`Schema: +(.*?) +Last_errno:`)
+	headerRe     = regexp.MustCompile(`^#\s+[A-Z]`)
+	metricsRe    = regexp.MustCompile(`(\w+): (\S+|\z)`)
+	adminRe      = regexp.MustCompile(`command: (.+)`)
+	setRe        = regexp.MustCompile(`^SET (?:last_insert_id|insert_id|timestamp)`)
+	useRe        = regexp.MustCompile(`^(?i)use `)
+	metaFirstRe  = regexp.MustCompile(`^(?:[/A-Z].*)?mysqld,\sVersion.*(?:started\swith:|embedded\slibrary)$`)
+	metaSecondRe = regexp.MustCompile(`^T[cC][pP]\s[pP]ort:\s+\d+`)
+	metaThirdRe  = regexp.MustCompile(`^Time\s+Id\s+Command\s+Argument$`)
 )
 
 // A SlowLogParser parses a MySQL slow log. It implements the LogParser interface.
@@ -153,10 +156,9 @@ SCANNER_LOOP:
 		//   /usr/local/bin/mysqld, Version: 5.6.15-62.0-tokudb-7.1.0-tokudb-log (binary). started with:
 		//   Tcp port: 3306  Unix socket: /var/lib/mysql/mysql.sock
 		//   Time                 Id Command    Argument
-		if lineLen >= 20 && ((line[0] == '/' && line[lineLen-6:lineLen] == "with:\n") ||
-			(line[0:5] == "Time ") ||
-			(line[0:4] == "Tcp ") ||
-			(line[0:4] == "TCP ")) {
+		if lineLen >= 20 && (metaFirstRe.MatchString(line) ||
+			metaSecondRe.MatchString(line) ||
+			metaThirdRe.MatchString(line)) {
 			if p.opt.Debug {
 				l.Println("meta")
 			}
