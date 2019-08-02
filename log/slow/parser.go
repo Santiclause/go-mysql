@@ -43,9 +43,9 @@ var (
 	adminRe      = regexp.MustCompile(`command: (.+)`)
 	setRe        = regexp.MustCompile(`^SET (?:last_insert_id|insert_id|timestamp)`)
 	useRe        = regexp.MustCompile(`^(?i)use `)
-	metaFirstRe  = regexp.MustCompile(`^(?:[/A-Z].*)?mysqld,\sVersion.*(?:started\swith:|embedded\slibrary)$`)
+	metaFirstRe  = regexp.MustCompile(`^(?:[/A-Z].*)?mysqld,\sVersion.*(?:started\swith:|embedded\slibrary)`)
 	metaSecondRe = regexp.MustCompile(`^T[cC][pP]\s[pP]ort:\s+\d+`)
-	metaThirdRe  = regexp.MustCompile(`^Time\s+Id\s+Command\s+Argument$`)
+	metaThirdRe  = regexp.MustCompile(`^Time\s+Id\s+Command\s+Argument`)
 )
 
 // A SlowLogParser parses a MySQL slow log. It implements the LogParser interface.
